@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Text Extractor</title>
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container mt-5">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">PDF Text Extractor</h5>
+        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="pdfFile" class="form-label">Select PDF File:</label>
+            <input type="file" class="form-control" id="pdfFile" name="pdfFile" accept=".pdf" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Do</button>
+        </form>
+        <div id="result" class="mt-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const formData = new FormData(this);
+      const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+      document.getElementById('result').innerText = result.text;
+    });
+  </script>
+
+  <!-- ... Your existing HTML code ... -->
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('uploadForm');
+    const resultDiv = document.getElementById('result');
+
+    form.addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const formData = new FormData(this);
+      const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+      resultDiv.innerText = result.text;
+    });
+  });
+</script>
+
+<!-- ... Your existing HTML code ... -->
+
+
+  <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
