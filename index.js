@@ -5,6 +5,7 @@ const Tesseract = require('tesseract.js');
 const pdfParse = require('pdf-parse');
 const fs = require('fs/promises');
 const mongoose = require('mongoose'); // Added Mongoose
+const { PDFDocument: PDFLibDocument } = require('pdf-lib');
 
 
 const app = express();
@@ -101,6 +102,95 @@ const handleTextExtraction = async (req, res, extractionFunction) => {
     // await fs.unlink(filePath);
   }
 };
+
+const MergedFileSchema = new mongoose.Schema({
+  mergedFileName: {
+    type: String,
+    required: true
+  },
+  file1Name: {
+    type: String,
+    required: true
+  },
+  file2Name: {
+    type: String,
+    required: true
+  },
+  size: {
+    type: Number,
+    required: true
+  }
+});
+
+const MergedFile = mongoose.model('MergedFile', MergedFileSchema);
+
+const mergePDFs = async (files) => {
+  // Load the PDF files
+  const pdfDocuments = await Promise.all(
+    files.map(async (file) => {
+      const filePath = path.join(__dirname, uploadDestination, file.filename);
+      const pdfBytes = await fs.readFile(filePath);
+      return PDFLibDocument.load(pdfBytes);
+    })
+  );
+
+  // Create a new PDF document for the merged result
+  const mergedPdf = await PDFLibDocument.create();
+
+  // Iterate through each loaded PDF document and append its pages to the merged document
+  for (const pdfDoc of pdfDocuments) {
+    const pages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+    pages.forEach((page) => mergedPdf.addPage(page));
+  }
+
+  // Generate the merged PDF file as a buffer
+  const mergedPdfBytes = await mergedPdf.save();
+
+  // Save the merged PDF file to the server (optional)
+  const mergedFilePath = path.join(__dirname, uploadDestination, 'merged.pdf');
+  await fs.writeFile(mergedFilePath, mergedPdfBytes);
+
+  // Return the merged PDF file path
+  return mergedFilePath;
+};
+
+app.post('/merge-pdfs', upload.array('files', 2), async (req, res) => {
+  try {
+    // Ensure that at least two PDF files are provided for merging
+    if (!req.files || req.files.length < 2) {
+      return res.status(400).send({ message: 'Please provide at least two PDF files for merging.' });
+    }
+
+    // Call the mergePDFs function with the uploaded files
+    const mergedFilePath = await mergePDFs(req.files);
+
+    // Extract file names for the merged record
+    const file1Name = req.files[0].originalname;
+    const file2Name = req.files[1].originalname;
+    
+    // Create a new MergedFile document
+    const mergedFileRecord = new MergedFile({
+      mergedFileName: path.basename(mergedFilePath),
+      file1Name,
+      file2Name,
+      size: req.files.reduce((acc, file) => acc + file.size, 0)
+    });
+
+    // Save the merged file record to the MongoDB database
+    await mergedFileRecord.save();
+
+    // Respond with a success message or the merged PDF file path
+    res.send({
+      message: 'PDF files merged successfully!',
+      mergedFilePath: '/uploads/merged.pdf', // Adjust this path accordingly
+      mergedFileRecord: mergedFileRecord // Include the merged file record in the response
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: 'Error merging PDF files.' });
+  }
+});
+
 // Fetch text from the Mongo Database by filename
 app.get('/get-text/:fileName', async (req, res) => {
   try {
