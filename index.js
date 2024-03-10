@@ -91,6 +91,22 @@ const handleTextExtraction = async (req, res, extractionFunction) => {
     // await fs.unlink(filePath);
   }
 };
+// Fetch text from the Mongo Database by filename
+app.get('/get-text/:fileName', async (req, res) => {
+  try {
+    const fileName = req.params.fileName;
+    const file = await File.findOne({ filename: fileName });
+    
+    if (!file) {
+      return res.status(404).send({ message: 'File not found' });
+    }
+    
+    res.send({ text: file.text });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: 'Error fetching text' });
+  }
+});
 
 app.post('/extract-image-text', upload.single('file'), async (req, res) => {
   const fileExtension = path.extname(req.file.filename);
