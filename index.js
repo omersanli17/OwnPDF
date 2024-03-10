@@ -14,21 +14,47 @@ const uploadDestination = 'uploads/';
 const uploadLimit = 5 * 1024 * 1024; // 5MB limit
 
 const allowedImageExtensions = ['.png', '.jpeg', '.jpg'];
-const allowedPdfExtensions = ['.pdf'];
+const allowedPdfExtensions = ['.pdf']; // Added allowed PDF extensions
 
-const upload = multer({
-  dest: uploadDestination,
-  limits: { fileSize: uploadLimit },
-  fileFilter: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-
-    if (allowedImageExtensions.includes(ext) || allowedPdfExtensions.includes(ext)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Unsupported file type'));
-    }
+// Upload by name+.extension
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDestination);
   },
+  filename: (req, file, cb) => {
+    cb(null, `${file.originalname}-${Date.now()}${path.extname(file.originalname)}`);
+  }
 });
+
+var upload = multer({ storage: storage });
+
+const mongoURI = 'mongodb://localhost:27017/PDFDatabase'; // Replace with your actual connection string
+
+mongoose.connect(mongoURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch(error => console.error('Error connecting to MongoDB:', error));
+
+const FileSchema = new mongoose.Schema({ // Define Mongoose schema (optional)
+  filename: {
+    type: String,
+    required: true
+  },
+  contentType: {
+    type: String,
+    required: true
+  },
+  text: {
+    type: String
+  },
+  data: { // For storing binary data if needed
+    type: Buffer
+  }
+});
+
+const File = mongoose.model('File', FileSchema);
 
 const extractTextFromImage = async (filePath) => {
   const { data: { text } } = await Tesseract.recognize(filePath, 'eng');
