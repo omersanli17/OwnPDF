@@ -22,7 +22,9 @@ const storage = multer.diskStorage({
     cb(null, uploadDestination);
   },
   filename: (req, file, cb) => {
-    cb(null, `${file.originalname}-${Date.now()}${path.extname(file.originalname)}`);
+    const originalFileName = path.parse(file.originalname).name; // Extract the original filename without extension
+    const newFileName = `${originalFileName}${path.extname(file.originalname)}`;
+    cb(null, newFileName);
   }
 });
 
@@ -70,9 +72,17 @@ const handleTextExtraction = async (req, res, extractionFunction) => {
   try {
     const filePath = path.join(__dirname, uploadDestination, req.file.filename);
     const text = await extractionFunction(filePath);
-
+  
+    const originalFileName = req.file.originalname; // Use originalname instead of filename
+  
+    // Parse the original filename and extension
+    const { name, ext } = path.parse(originalFileName);
+  
+    // Create a new filename without the additional extension
+    const newFileName = `${name}.${req.file.mimetype.split('/')[1]}`;
+  
     const newFile = new File({
-      filename: `${req.file.filename}.${req.file.mimetype.split('/')[1]}`,
+      filename: newFileName,
       contentType: req.file.mimetype,
       text: text
     });
