@@ -70,13 +70,24 @@ const handleTextExtraction = async (req, res, extractionFunction) => {
   try {
     const filePath = path.join(__dirname, uploadDestination, req.file.filename);
     const text = await extractionFunction(filePath);
-    res.send({ text });
+
+    const newFile = new File({
+      filename: `${req.file.filename}.${req.file.mimetype.split('/')[1]}`,
+      contentType: req.file.mimetype,
+      text: text
+    });
+
+    // Optionally store binary data:
+    // newFile.data = await fs.readFile(filePath);
+
+    await newFile.save();
+
+    res.send({ message: 'Text extracted and file stored successfully!' });
   } catch (error) {
     console.error(error);
-    res.status(500).send({ message: 'Error extracting text' });
+    res.status(500).send({ message: 'Error extracting text and storing file' });
   } finally {
-    // Cleanup temporary file
-    // Uncomment the line below if you want to delete the file after processing
+    // Cleanup temporary file (optional)
     // await fs.unlink(filePath);
   }
 };
