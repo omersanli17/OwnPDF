@@ -4,6 +4,8 @@ const path = require('path');
 const Tesseract = require('tesseract.js');
 const pdfParse = require('pdf-parse');
 const fs = require('fs/promises');
+const mongoose = require('mongoose'); // Added Mongoose
+
 
 const app = express();
 const port = 3000;
