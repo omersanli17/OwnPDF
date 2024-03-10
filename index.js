@@ -82,6 +82,12 @@ const handleTextExtraction = async (req, res, extractionFunction) => {
 };
 
 app.post('/extract-image-text', upload.single('file'), async (req, res) => {
+  const fileExtension = path.extname(req.file.filename);
+  if (!allowedImageExtensions.includes(fileExtension)) {
+    return res.status(400).send({ message: 'Invalid file type. Only images are allowed for image text extraction.' });
+  }
+
+  // Continue with image text extraction if the extension is valid
   await handleTextExtraction(req, res, extractTextFromImage);
 });
 
