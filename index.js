@@ -125,20 +125,18 @@ const MergedFileSchema = new mongoose.Schema({
 const MergedFile = mongoose.model('MergedFile', MergedFileSchema);
 
 const mergePDFs = async (files) => {
-  // Load the PDF files
-  const pdfDocuments = await Promise.all(
-    files.map(async (file) => {
-      const filePath = path.join(__dirname, uploadDestination, file.filename);
-      const pdfBytes = await fs.readFile(filePath);
-      return PDFLibDocument.load(pdfBytes);
-    })
-  );
+  // Extract file names for the merged record
+  const file1Name = path.parse(files[0].originalname).name;
+  const file2Name = path.parse(files[1].originalname).name;
 
   // Create a new PDF document for the merged result
   const mergedPdf = await PDFLibDocument.create();
 
   // Iterate through each loaded PDF document and append its pages to the merged document
-  for (const pdfDoc of pdfDocuments) {
+  for (const file of files) {
+    const filePath = path.join(__dirname, uploadDestination, file.filename);
+    const pdfBytes = await fs.readFile(filePath);
+    const pdfDoc = await PDFLibDocument.load(pdfBytes);
     const pages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
     pages.forEach((page) => mergedPdf.addPage(page));
   }
@@ -146,9 +144,22 @@ const mergePDFs = async (files) => {
   // Generate the merged PDF file as a buffer
   const mergedPdfBytes = await mergedPdf.save();
 
+  // Generate the merged filename based on the original names
+  const mergedFileName = `merged_${file1Name}_${file2Name}.pdf`;
+
   // Save the merged PDF file to the server (optional)
-  const mergedFilePath = path.join(__dirname, uploadDestination, 'merged.pdf');
+  const mergedFilePath = path.join(__dirname, uploadDestination, mergedFileName);
   await fs.writeFile(mergedFilePath, mergedPdfBytes);
+
+  // Save the merged PDF file information to MongoDB
+  const mergedFileRecord = new MergedFile({
+    mergedFileName: mergedFileName,
+    file1Name: files[0].originalname,
+    file2Name: files[1].originalname,
+    size: files.reduce((acc, file) => acc + file.size, 0)
+  });
+
+  await mergedFileRecord.save();
 
   // Return the merged PDF file path
   return mergedFilePath;
@@ -235,26 +246,11 @@ app.post('/merge-pdfs', upload.array('files', 2), async (req, res) => {
     // Call the mergePDFs function with the uploaded files
     const mergedFilePath = await mergePDFs(req.files);
 
-    // Extract file names for the merged record
-    const file1Name = req.files[0].originalname;
-    const file2Name = req.files[1].originalname;
-    
-    // Create a new MergedFile document
-    const mergedFileRecord = new MergedFile({
-      mergedFileName: path.basename(mergedFilePath),
-      file1Name,
-      file2Name,
-      size: req.files.reduce((acc, file) => acc + file.size, 0)
-    });
-
-    // Save the merged file record to the MongoDB database
-    await mergedFileRecord.save();
-
     // Respond with a success message or the merged PDF file path
     res.send({
       message: 'PDF files merged successfully!',
-      mergedFilePath: '/uploads/merged.pdf', // Adjust this path accordingly
-      mergedFileRecord: mergedFileRecord // Include the merged file record in the response
+      mergedFilePath: `/uploads/${path.basename(mergedFilePath)}`, // Adjust this path accordingly
+      mergedFileRecord: path.basename(mergedFilePath) // Include the merged file record in the response
     });
   } catch (error) {
     console.error(error);
