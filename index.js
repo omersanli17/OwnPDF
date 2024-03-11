@@ -154,6 +154,77 @@ const mergePDFs = async (files) => {
   return mergedFilePath;
 };
 
+
+// SPLIT PDF
+const SplitFileSchema = new mongoose.Schema({
+  splitFileName: {
+    type: String,
+    required: true
+  },
+  originalFileName: {
+    type: String,
+    required: true
+  },
+  startPage: {
+    type: Number,
+    required: true
+  },
+  endPage: {
+    type: Number,
+    required: true
+  },
+  size: {
+    type: Number,
+    required: true
+  }
+});
+
+const SplitFile = mongoose.model('SplitFile', SplitFileSchema);
+
+const splitPDF = async (req, filePath, startPage, endPage) => {
+  const pdfBytes = await fs.readFile(filePath);
+  const pdfDoc = await PDFLibDocument.load(pdfBytes);
+  const newPdf = await PDFLibDocument.create();
+  const pages = await newPdf.copyPages(pdfDoc, [startPage - 1, endPage - 1]);
+  pages.forEach((page) => newPdf.addPage(page));
+  const newPdfBytes = await newPdf.save();
+
+  // Parse the original filename and extension
+  const { name, ext } = path.parse(req.file.originalname);
+
+  // Save the split PDF file to the server (optional)
+  const splitFileName = `splitted_${name}_startPage${startPage}_endPage${endPage}.pdf`;
+  const newFilePath = path.join(__dirname, uploadDestination, splitFileName);
+  await fs.writeFile(newFilePath, newPdfBytes);
+
+  // Save split file information to MongoDB
+  const splitFileRecord = new SplitFile({
+    splitFileName: splitFileName,
+    originalFileName: req.file.originalname,
+    startPage: startPage,
+    endPage: endPage,
+    size: newPdfBytes.length
+  });
+
+  await splitFileRecord.save();
+
+  return newFilePath;
+};
+
+
+app.post('/split-pdf', upload.single('file'), async (req, res) => {
+  const { startPage, endPage } = req.body;
+  if (!startPage || !endPage) {
+    return res.status(400).send({ message: 'Please provide start and end page numbers for splitting the PDF.' });
+  }
+  if (startPage > endPage) {
+    return res.status(400).send({ message: 'Start page cannot be greater than end page.' });
+  }
+  const filePath = path.join(__dirname, uploadDestination, req.file.filename);
+  const newFilePath = await splitPDF(req, filePath, startPage, endPage);
+  res.send({ message: 'PDF split successfully!', newFilePath });
+});
+
 app.post('/merge-pdfs', upload.array('files', 2), async (req, res) => {
   try {
     // Ensure that at least two PDF files are provided for merging
