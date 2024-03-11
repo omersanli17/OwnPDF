@@ -1,0 +1,240 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "PDF Processing API",
+      "version": "1.0.0",
+      "description": "An API for processing PDF files"
+    },
+    "servers": [
+      {
+        "url": "http://localhost:3000",
+        "description": "Local development server"
+      }
+    ],
+    "paths": {
+      "/split-pdf": {
+        "post": {
+          "summary": "Split a PDF file",
+          "operationId": "splitPdf",
+          "requestBody": {
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "file": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "startPage": {
+                      "type": "integer"
+                    },
+                    "endPage": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": ["file", "startPage", "endPage"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "PDF split successfully",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "message": "PDF split successfully!",
+                    "newFilePath": "/uploads/split.pdf"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "message": "Please provide start and end page numbers for splitting the PDF."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/merge-pdfs": {
+        "post": {
+          "summary": "Merge two PDF files",
+          "operationId": "mergePdfs",
+          "requestBody": {
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "files": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "binary"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  },
+                  "required": ["files"]
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "PDF files merged successfully",
+                "content": {
+                  "application/json": {
+                    "example": {
+                      "message": "PDF files merged successfully!",
+                      "mergedFilePath": "/uploads/merged.pdf",
+                      "mergedFileRecord": {
+                        "mergedFileName": "merged.pdf",
+                        "file1Name": "file1.pdf",
+                        "file2Name": "file2.pdf",
+                        "size": 123456
+                      }
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad Request",
+                "content": {
+                  "application/json": {
+                    "example": {
+                      "message": "Please provide at least two PDF files for merging."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/get-text/{fileName}": {
+        "get": {
+          "summary": "Get text content by filename",
+          "operationId": "getText",
+          "parameters": [
+            {
+              "name": "fileName",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Text content retrieved successfully",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "File not found",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "message": "File not found"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/extract-image-text": {
+        "post": {
+          "summary": "Extract text from an image file",
+          "operationId": "extractImageText",
+          "requestBody": {
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "file": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  },
+                  "required": ["file"]
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Text extracted successfully",
+                "content": {
+                  "application/json": {
+                    "example": {
+                      "message": "Text extracted and file stored successfully!"
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad Request",
+                "content": {
+                  "application/json": {
+                    "example": {
+                      "message": "Invalid file type. Only images are allowed for image text extraction."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/extract-pdf-text": {
+        "post": {
+          "summary": "Extract text from a PDF file",
+          "operationId": "extractPdfText",
+          "requestBody": {
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "file": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  },
+                  "required": ["file"]
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Text extracted successfully",
+                "content": {
+                  "application/json": {
+                    "example": {
+                      "message": "Text extracted and file stored successfully!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
