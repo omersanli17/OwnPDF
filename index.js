@@ -6,10 +6,14 @@ const pdfParse = require('pdf-parse');
 const fs = require('fs/promises');
 const mongoose = require('mongoose'); // Added Mongoose
 const { PDFDocument: PDFLibDocument } = require('pdf-lib');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 
 
 const app = express();
 const port = 3000;
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 const uploadDestination = 'uploads/';
 const uploadLimit = 5 * 1024 * 1024; // 5MB limit
