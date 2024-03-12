@@ -152,6 +152,11 @@ call-bind@^1.0.7:
     get-intrinsic "^1.2.4"
     set-function-length "^1.2.1"
 
+child_process@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.npmjs.org/child_process/-/child_process-1.0.2.tgz"
+  integrity sha512-Wmza/JzL0SiWz7kl6MhIKT5ceIlnFPJX+lwUGj7Clhy5MMldsSoJR0+uvRzOS5Kv45Mq7t1PoE8TsOA9bzvb6g==
+
 chokidar@^3.5.2:
   version "3.6.0"
   resolved "https://registry.npmjs.org/chokidar/-/chokidar-3.6.0.tgz"
@@ -166,6 +171,14 @@ chokidar@^3.5.2:
     readdirp "~3.6.0"
   optionalDependencies:
     fsevents "~2.3.2"
+
+compress-pdf@^0.5.1:
+  version "0.5.1"
+  resolved "https://registry.npmjs.org/compress-pdf/-/compress-pdf-0.5.1.tgz"
+  integrity sha512-yDlqd65GjvIXEFf0LxUxOvOgGijOhdDa+dcs1j/hGUl6YMs2eaymb8J5Y9lRjNv+d7SLYl85hT+I19BJsHbeQw==
+  dependencies:
+    dotenv "16.4.1"
+    lodash "4.17.21"
 
 concat-map@0.0.1:
   version "0.0.1"
@@ -255,6 +268,11 @@ destroy@1.2.0:
   version "1.2.0"
   resolved "https://registry.npmjs.org/destroy/-/destroy-1.2.0.tgz"
   integrity sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==
+
+dotenv@16.4.1:
+  version "16.4.1"
+  resolved "https://registry.npmjs.org/dotenv/-/dotenv-16.4.1.tgz"
+  integrity sha512-CjA3y+Dr3FyFDOAMnxZEGtnW9KBR2M0JvvUtXNW+dYJL5ROWxP9DUHCwgFqpMk0OXCc0ljhaNTr2w/kutYIcHQ==
 
 ee-first@1.1.1:
   version "1.1.1"
@@ -362,6 +380,11 @@ fresh@0.5.2:
   version "0.5.2"
   resolved "https://registry.npmjs.org/fresh/-/fresh-0.5.2.tgz"
   integrity sha512-zJ2mQYM18rEFOudeV4GShTGIQ7RbzA7ozbU9I/XBpm7kqgMywgmylMwXHxZJmkVoYkna9d2pVXVXPdYTP9ej8Q==
+
+fs@^0.0.1-security:
+  version "0.0.1-security"
+  resolved "https://registry.npmjs.org/fs/-/fs-0.0.1-security.tgz"
+  integrity sha512-3XY9e1pP0CVEUCdj5BmfIZxRBTSDycnbqhIOGec9QYtmVH2fbLpj86CFWkrNOkt/Fvty4KZG5lTglL9j/gJ87w==
 
 fsevents@~2.3.2:
   version "2.3.3"
@@ -518,6 +541,11 @@ kareem@2.5.1:
   version "2.5.1"
   resolved "https://registry.npmjs.org/kareem/-/kareem-2.5.1.tgz"
   integrity sha512-7jFxRVm+jD+rkq3kY0iZDJfsO2/t4BBPeEb2qKn2lR/9KhuksYk5hxzfRYWMPV8P/x2d0kHD306YyWLzjjH+uA==
+
+lodash@4.17.21:
+  version "4.17.21"
+  resolved "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
+  integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
 lru-cache@^6.0.0:
   version "6.0.0"
@@ -756,6 +784,13 @@ pdf-lib@^1.17.1:
     "@pdf-lib/upng" "^1.0.1"
     pako "^1.0.11"
     tslib "^1.11.1"
+
+pdf-manip@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.npmjs.org/pdf-manip/-/pdf-manip-1.0.3.tgz"
+  integrity sha512-ZZNhdPxaD8Wi9TfhZss17FsYlTz/T7YGjlZLjt9xEZT7Jx5DFTdpAWK5xEBOydNNk1TPdrpIefZ2Baybd5XROw==
+  dependencies:
+    pdf-lib "^1.17.1"
 
 pdf-parse@^1.1.1:
   version "1.1.1"
