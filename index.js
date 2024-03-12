@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const Tesseract = require('tesseract.js');
 const pdfParse = require('pdf-parse');
+const fsRoot = require('fs');
 const fs = require('fs/promises');
 const mongoose = require('mongoose'); // Added Mongoose
 const { PDFDocument: PDFLibDocument } = require('pdf-lib');
@@ -295,8 +296,8 @@ app.post('/compress-pdf', upload.single('file'), async (req, res) => {
       return res.status(500).send({ message: 'Error compressing PDF file.' });
     }
 
-    const uncompressedFileSize = fs.statSync(uncompressedFilePath).size;
-    const compressedFileSize = fs.statSync(compressedFilePath).size;
+    const uncompressedFileSize = fsRoot.statSync(uncompressedFilePath).size;
+    const compressedFileSize = fsRoot.statSync(compressedFilePath).size;
 
     if (compressedFileSize >= uncompressedFileSize) {
       fs.unlinkSync(compressedFilePath);
