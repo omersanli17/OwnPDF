@@ -3,7 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const Tesseract = require('tesseract.js');
 const pdfParse = require('pdf-parse');
-const fs = require('fs');
+const fs = require('fs/promises');
 const mongoose = require('mongoose'); // Added Mongoose
 const { PDFDocument: PDFLibDocument } = require('pdf-lib');
 const swaggerUi = require('swagger-ui-express');
@@ -169,7 +169,6 @@ const mergePDFs = async (files) => {
   return mergedFilePath;
 };
 
-
 // SPLIT PDF
 const SplitFileSchema = new mongoose.Schema({
   splitFileName: {
@@ -256,7 +255,7 @@ app.post('/merge-pdfs', upload.array('files', 2), async (req, res) => {
       mergedFileRecord: path.basename(mergedFilePath) // Include the merged file record in the response
     });
   } catch (error) {
-    console.error(error);// Write endpoint to compress pdf use shrinkpdf, first I would like you to upload two pdf file one of them is uncompressedversion that I send to endpoint and the other one compressed. File name should be filename.pdf for uncompressed; and compressed_filename.pdf for compressed
+    console.error(error);
     res.status(500).send({ message: 'Error merging PDF files.' });
   }
 });
