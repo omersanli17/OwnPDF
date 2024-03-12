@@ -3,12 +3,12 @@ const multer = require('multer');
 const path = require('path');
 const Tesseract = require('tesseract.js');
 const pdfParse = require('pdf-parse');
-const fs = require('fs/promises');
+const fs = require('fs');
 const mongoose = require('mongoose'); // Added Mongoose
 const { PDFDocument: PDFLibDocument } = require('pdf-lib');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
-
+const { exec } = require('child_process');
 
 const app = express();
 const port = 3000;
@@ -226,7 +226,6 @@ const splitPDF = async (req, filePath, startPage, endPage) => {
   return newFilePath;
 };
 
-
 app.post('/split-pdf', upload.single('file'), async (req, res) => {
   const { startPage, endPage } = req.body;
   if (!startPage || !endPage) {
@@ -261,6 +260,45 @@ app.post('/merge-pdfs', upload.array('files', 2), async (req, res) => {
     res.status(500).send({ message: 'Error merging PDF files.' });
   }
 });
+
+// Write endpoint to compress pdf use shrinkpdf, first I would like you to upload two pdf file one of them is uncompressedversion that I send to endpoint and the other one compressed. File name should be filename.pdf for uncompressed; and compressed_filename.pdf for compressed
+app.post('/compress-pdf', upload.single('file'), async (req, res) => {
+  const fileExtension = path.extname(req.file.filename);
+  if (!allowedPdfExtensions.includes(fileExtension)) {
+    return res.status(400).send({ message: 'Invalid file type. Only PDF files are allowed for compression.' });
+  }
+  // Continue with PDF compression if the extension is valid
+  const uncompressedFilePath = path.join(__dirname, uploadDestination, req.file.filename);
+  const compressedFileName = `compressed_${req.file.filename}`;
+  const compressedFilePath = path.join(__dirname, uploadDestination, compressedFileName);
+  
+  // Run the shrinkpdf script using child_process.exec
+  const command = `/usr/local/bin/shrinkpdf.sh -o ${compressedFilePath} ${uncompressedFilePath}`;
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.error(error);
+      return res.status(500).send({ message: 'Error compressing PDF file.' });
+    }
+    if (stderr) {
+      console.error(stderr);
+      return res.status(500).send({ message: 'Error compressing PDF file.' });
+    }
+    // Check if the compressed file is actually smaller
+    const uncompressedFileSize = fs.statSync(uncompressedFilePath).size;
+    const compressedFileSize = fs.statSync(compressedFilePath).size;
+    if (compressedFileSize >= uncompressedFileSize) {
+      // If the compressed file is not smaller, delete it and return an error message
+      fs.unlinkSync(compressedFilePath);
+      return res.status(500).send({ message: 'Error compressing PDF file. Compressed file is not smaller.' });
+    }
+    // Respond with the compressed file path
+    res.send({
+      message: 'PDF file compressed successfully!',
+      compressedFilePath: `/uploads/${path.basename(compressedFilePath)}` // Adjust this path accordingly
+    });
+  });
+});
+
 
 // Fetch text from the Mongo Database by filename
 app.get('/get-text/:fileName', async (req, res) => {
