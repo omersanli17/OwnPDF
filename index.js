@@ -226,6 +226,49 @@ const splitPDF = async (req, filePath, startPage, endPage) => {
   return newFilePath;
 };
 
+const ConvertedFileSchema = new mongoose.Schema({
+  originalFileName: {
+    type: String,
+    required: true
+  },
+  convertedFileName: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+const ConvertedFile = mongoose.model('ConvertedFile', ConvertedFileSchema);
+
+app.post('/convert-pdf-to-docx', upload.single('file'), async (req, res) => {
+  const pdfFilePath = path.join(__dirname, uploadDestination, req.file.filename);
+  const docxFileName = `converted_docx_${req.file.filename}.docx`;
+  const docxFilePath = path.join(__dirname, uploadDestination, docxFileName);
+  
+  // Call the python script to convert PDF to DOCX
+  const command = `python pdf2docx_converter.py ${pdfFilePath} ${docxFilePath}`;
+  
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error converting PDF to DOCX: ${error.message}`);
+      res.status(500).send({ message: 'Error converting PDF to DOCX' });
+    } else {
+      // Save the converted file information to MongoDB
+      const convertedFileRecord = new ConvertedFile({
+        originalFileName: req.file.originalname,
+        convertedFileName: docxFileName
+      });
+      convertedFileRecord.save();
+      
+      console.log(`PDF converted to DOCX. DOCX file saved at ${docxFilePath}`);
+      res.send({ message: 'PDF converted to DOCX successfully!', docxFilePath });
+    }
+  });
+});
+
 app.post('/split-pdf', upload.single('file'), async (req, res) => {
   const { startPage, endPage } = req.body;
   if (!startPage || !endPage) {
