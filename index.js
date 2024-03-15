@@ -269,6 +269,55 @@ app.post('/convert-pdf-to-docx', upload.single('file'), async (req, res) => {
   });
 });
 
+// PDF TO POWERPOINT (PPTX) 
+const ConvertedPPTXFileSchema = new mongoose.Schema({
+  originalFileName: {
+    type: String,
+    required: true
+  },
+  convertedFileName: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+const ConvertedPPTXFile = mongoose.model('ConvertedPPTXFile', ConvertedPPTXFileSchema);
+
+app.post('/convert-pdf-to-pptx', upload.single('file'), async (req, res) => {
+  const pdfFilePath = path.join(__dirname, uploadDestination, req.file.filename);
+  const pptxFileName = `converted_pptx_${req.file.filename}.pptx`;
+  const pptxFilePath = path.join(__dirname, uploadDestination, pptxFileName);
+
+  // Call the python script to convert PDF to PPTX
+  const command = `python pdf2pptx_converter.py ${pdfFilePath} ${pptxFilePath}`;
+
+  exec(command, async (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error: ${error.message}`);
+      return res.status(500).send({ message: 'An error occurred during PDF to PPTX conversion.' });
+    }
+    console.log(stdout);
+    console.log(stderr);
+
+    // Save the converted PPTX file information to MongoDB
+    const convertedPPTXFileRecord = new ConvertedPPTXFile({
+      originalFileName: req.file.originalname,
+      convertedFileName: pptxFileName
+    });
+    await convertedPPTXFileRecord.save();
+
+    // Respond with the converted PPTX file path
+    res.send({
+      message: 'PDF converted to PPTX successfully!',
+      pptxFilePath: `/uploads/${path.basename(pptxFilePath)}`,
+    });
+  });
+});
+
 app.post('/split-pdf', upload.single('file'), async (req, res) => {
   const { startPage, endPage } = req.body;
   if (!startPage || !endPage) {
