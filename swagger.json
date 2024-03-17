@@ -1,27 +1,173 @@
 {
-  "openapi": "3.0.0",
+  "swagger": "2.0",
   "info": {
-    "title": "OwnPDFBackend API",
     "version": "1.0.0",
-    "description": "API documentation for OwnPDFBackend"
+    "title": "OwnPDF API",
+    "description": "API endpoints for OwnPDF application"
   },
-  "servers": [
-    {
-      "url": "http://localhost:3000"
-    }
+  "basePath": "/",
+  "schemes": [
+    "http",
+    "https"
   ],
   "paths": {
     "/api-docs": {
       "get": {
-        "summary": "Get Swagger UI",
+        "summary": "Get API documentation",
         "responses": {
           "200": {
-            "description": "Swagger UI",
+            "description": "Successful operation",
             "content": {
-              "text/html": {
+              "application/json": {
                 "schema": {
-                  "type": "string",
-                  "example": "<html>...</html>"
+                  "$ref": "#/definitions/SwaggerDocument"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/convert-pdf-to-docx": {
+      "post": {
+        "summary": "Convert PDF to DOCX",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "description": "PDF file to convert",
+            "required": true,
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/ConversionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/convert-excel-to-pdf": {
+      "post": {
+        "summary": "Convert Excel to PDF",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "description": "Excel file to convert",
+            "required": true,
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/ConversionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/convert-pdf-to-pptx": {
+      "post": {
+        "summary": "Convert PDF to PPTX",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "description": "PDF file to convert",
+            "required": true,
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/ConversionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/ErrorResponse"
                 }
               }
             }
@@ -32,43 +178,39 @@
     "/split-pdf": {
       "post": {
         "summary": "Split PDF",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary"
-                  },
-                  "startPage": {
-                    "type": "integer"
-                  },
-                  "endPage": {
-                    "type": "integer"
-                  }
-                },
-                "required": ["file", "startPage", "endPage"]
-              }
-            }
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "description": "PDF file to split",
+            "required": true,
+            "type": "file"
+          },
+          {
+            "name": "startPage",
+            "in": "formData",
+            "description": "Start page number",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "endPage",
+            "in": "formData",
+            "description": "End page number",
+            "required": true,
+            "type": "integer"
           }
-        },
+        ],
         "responses": {
           "200": {
-            "description": "PDF split successfully!",
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "newFilePath": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/SplitResponse"
                 }
               }
             }
@@ -78,27 +220,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/ErrorResponse"
                 }
               }
             }
           },
           "500": {
-            "description": "Error splitting PDF",
+            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/ErrorResponse"
                 }
               }
             }
@@ -109,44 +241,28 @@
     "/merge-pdfs": {
       "post": {
         "summary": "Merge PDFs",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "files": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "binary"
-                    },
-                    "minItems": 2
-                  }
-                },
-                "required": ["files"]
-              }
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "files",
+            "in": "formData",
+            "description": "PDF files to merge",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "file"
             }
           }
-        },
+        ],
         "responses": {
           "200": {
-            "description": "PDF files merged successfully!",
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "mergedFilePath": {
-                      "type": "string"
-                    },
-                    "mergedFileRecord": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/MergeResponse"
                 }
               }
             }
@@ -156,27 +272,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/ErrorResponse"
                 }
               }
             }
           },
           "500": {
-            "description": "Error merging PDF files",
+            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/ErrorResponse"
                 }
               }
             }
@@ -187,40 +293,25 @@
     "/compress-pdf": {
       "post": {
         "summary": "Compress PDF",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                },
-                "required": ["file"]
-              }
-            }
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "description": "PDF file to compress",
+            "required": true,
+            "type": "file"
           }
-        },
+        ],
         "responses": {
           "200": {
-            "description": "PDF file compressed successfully!",
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "compressedFilePath": {
-                      "type": "string"
-                    },
-                    "fileId": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/CompressionResponse"
                 }
               }
             }
@@ -230,27 +321,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/ErrorResponse"
                 }
               }
             }
           },
           "500": {
-            "description": "Error compressing PDF file",
+            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/ErrorResponse"
                 }
               }
             }
@@ -265,24 +346,18 @@
           {
             "name": "fileName",
             "in": "path",
+            "description": "Name of the file",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "type": "string"
           }
         ],
         "responses": {
           "200": {
-            "description": "Text fetched successfully!",
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "text": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/TextResponse"
                 }
               }
             }
@@ -292,27 +367,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/ErrorResponse"
                 }
               }
             }
           },
           "500": {
-            "description": "Error fetching text",
+            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/ErrorResponse"
                 }
               }
             }
@@ -323,34 +388,25 @@
     "/extract-image-text": {
       "post": {
         "summary": "Extract text from image",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                },
-                "required": ["file"]
-              }
-            }
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "description": "Image file to extract text from",
+            "required": true,
+            "type": "file"
           }
-        },
+        ],
         "responses": {
           "200": {
-            "description": "Text extracted successfully!",
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/ExtractionResponse"
                 }
               }
             }
@@ -360,27 +416,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/ErrorResponse"
                 }
               }
             }
           },
           "500": {
-            "description": "Error extracting text",
+            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/ErrorResponse"
                 }
               }
             }
@@ -391,34 +437,25 @@
     "/extract-pdf-text": {
       "post": {
         "summary": "Extract text from PDF",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                },
-                "required": ["file"]
-              }
-            }
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "description": "PDF file to extract text from",
+            "required": true,
+            "type": "file"
           }
-        },
+        ],
         "responses": {
           "200": {
-            "description": "Text extracted successfully!",
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/ExtractionResponse"
                 }
               }
             }
@@ -428,31 +465,134 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/ErrorResponse"
                 }
               }
             }
           },
           "500": {
-            "description": "Error extracting text",
+            "description": "Internal server error",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/ErrorResponse"
                 }
               }
             }
           }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "SwaggerDocument": {
+      "type": "object",
+      "properties": {
+        "swagger": {
+          "type": "string"
+        },
+        "info": {
+          "$ref": "#/definitions/Info"
+        },
+        "basePath": {
+          "type": "string"
+        },
+        "schemes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "paths": {
+          "type": "object"
+        }
+      }
+    },
+    "Info": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "ConversionResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "docxFilePath": {
+          "type": "string"
+        }
+      }
+    },
+    "SplitResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "newFilePath": {
+          "type": "string"
+        }
+      }
+    },
+    "MergeResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "mergedFilePath": {
+          "type": "string"
+        },
+        "mergedFileRecord": {
+          "type": "string"
+        }
+      }
+    },
+    "CompressionResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "compressedFilePath": {
+          "type": "string"
+        },
+        "fileId": {
+          "type": "string"
+        }
+      }
+    },
+    "TextResponse": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "ExtractionResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
         }
       }
     }
