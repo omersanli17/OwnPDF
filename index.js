@@ -10,6 +10,8 @@ const { PDFDocument: PDFLibDocument } = require('pdf-lib');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
 const { exec } = require('child_process');
+const puppeteer = require('puppeteer');
+const xlsx = require('xlsx');
 
 const app = express();
 const port = 3000;
@@ -267,6 +269,68 @@ app.post('/convert-pdf-to-docx', upload.single('file'), async (req, res) => {
       res.send({ message: 'PDF converted to DOCX successfully!', docxFilePath });
     }
   });
+});
+
+// EXCEL TO PDF
+const ConvertedExcelFileSchema = new mongoose.Schema({
+  originalFileName: {
+    type: String,
+    required: true
+  },
+  convertedFileName: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+const ConvertedExcelFile = mongoose.model('ConvertedExcelFile', ConvertedExcelFileSchema);
+
+app.post('/convert-excel-to-pdf', upload.single('file'), async (req, res) => {
+  const excelFilePath = path.join(__dirname, uploadDestination, req.file.filename);
+  const pdfFileName = `converted_pdf_${req.file.filename}.pdf`;
+  const pdfFilePath = path.join(__dirname, uploadDestination, pdfFileName);
+
+  const browser = await puppeteer.launch({ headless: true, slowMo: 500 });
+  const page = await browser.newPage();
+
+  const wb = xlsx.readFile(excelFilePath);
+  const sheetName = wb.SheetNames[0];
+  const sheetValue = wb.Sheets[sheetName];
+  const htmlData = xlsx.utils.sheet_to_html(sheetValue);
+
+  fsRoot.writeFile('excelToHtml.html', htmlData, function (err) {
+    console.log('Data is successfully converted');
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for 3 seconds
+  await page.goto('file://' + path.join(__dirname, 'excelToHtml.html'), { waitUntil: 'networkidle2' }).catch(function () {
+    console.log('Error while loading the file');
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for 3 seconds
+  await page.pdf({ path: pdfFilePath, format: 'A4', printBackground: true });
+
+  await browser.close();
+
+    // WHEN IT SUCCESSFULLY CONVERTS, DELETE HTML FILE AND, SAVE THE FILE TO MONGODB
+
+  fsRoot.unlink('excelToHtml.html', function (err) {
+    if (err) throw err;
+    console.log('File deleted!');
+  });
+
+  const convertedExcelFileRecord = new ConvertedExcelFile({
+    originalFileName: req.file.originalname,
+    convertedFileName: pdfFileName
+  });
+
+  await convertedExcelFileRecord.save();
+
+  res.send({ message: 'Excel converted to PDF successfully!', pdfFilePath });
 });
 
 // PDF TO POWERPOINT (PPTX) 
