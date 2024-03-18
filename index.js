@@ -46,7 +46,7 @@ mongoose.connect(mongoURI, {
 })
 .then(() => console.log('Connected to MongoDB'))
 .catch(error => console.error('Error connecting to MongoDB:', error));
-
+//7 
 const FileSchema = new mongoose.Schema({ // Define Mongoose schema (optional)
   filename: {
     type: String,
