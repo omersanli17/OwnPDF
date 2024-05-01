@@ -28,6 +28,53 @@
         }
       }
     },
+    "/merge-heic-to-pdf": {
+      "post": {
+        "summary": "Merge HEIC images to PDF",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "files",
+            "in": "formData",
+            "description": "HEIC image files to merge (at least 2 required)",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "file"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HEIC files merged to PDF successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "mergedFilePath": {
+                      "type": "string",
+                      "description": "The path to the generated PDF file."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Please upload at least 2 HEIC files."
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
     "/convert-pdf-to-docx": {
       "post": {
         "summary": "Convert PDF to DOCX",
