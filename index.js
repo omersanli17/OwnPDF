@@ -483,6 +483,22 @@ app.post('/compress-pdf', upload.single('file'), async (req, res) => {
   });
 });
 
+// Define a new schema for merged HEIC files
+const MergedHEICSchema = new mongoose.Schema({
+  mergedFileName: {
+    type: String,
+    required: true
+  },
+  originalFileNames: [String], // Array to store original filenames
+  size: {
+    type: Number,
+    required: true
+  }
+});
+
+// Create the model based on the schema
+const MergedHEICFile = mongoose.model('MergedHEICFile', MergedHEICSchema); 
+
 app.post('/merge-heic-to-pdf', upload.array('files'), async (req, res) => {
   try {
     const heicFiles = req.files.filter(file => path.extname(file.originalname).toLowerCase() === '.heic');
@@ -518,22 +534,6 @@ app.post('/merge-heic-to-pdf', upload.array('files'), async (req, res) => {
     const mergedFilePath = path.join(__dirname, uploadDestination, mergedFileName);
     const mergedPdfBytes = await pdfDoc.save();
     await fs.writeFile(mergedFilePath, mergedPdfBytes);
-
-    // Define a new schema for merged HEIC files
-    const MergedHEICSchema = new mongoose.Schema({
-      mergedFileName: {
-        type: String,
-        required: true
-      },
-      originalFileNames: [String], // Array to store original filenames
-      size: {
-        type: Number,
-        required: true
-      }
-    });
-
-    // Create the model based on the schema
-    const MergedHEICFile = mongoose.model('MergedHEICFile', MergedHEICSchema); 
 
     // Save information to MongoDB using the new model
     const mergedFileRecord = new MergedHEICFile({
