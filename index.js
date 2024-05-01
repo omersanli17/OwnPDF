@@ -12,6 +12,7 @@ const swaggerDocument = require('./swagger.json');
 const { exec } = require('child_process');
 const puppeteer = require('puppeteer');
 const xlsx = require('xlsx');
+const heicConvert = require('heic-convert');
 
 const app = express();
 const port = 3000;
@@ -395,15 +396,18 @@ app.post('/split-pdf', upload.single('file'), async (req, res) => {
   res.send({ message: 'PDF split successfully!', newFilePath });
 });
 
-app.post('/merge-pdfs', upload.array('files', 2), async (req, res) => {
+app.post('/merge-pdfs', upload.array('files'), async (req, res) => {
   try {
     // Ensure that at least two PDF files are provided for merging
     if (!req.files || req.files.length < 2) {
       return res.status(400).send({ message: 'Please provide at least two PDF files for merging.' });
     }
 
-    // Call the mergePDFs function with the uploaded files
-    const mergedFilePath = await mergePDFs(req.files);
+    // Concatenate all the file names
+    const allFileNames = req.files.map(file => path.basename(file.originalname, '.pdf')).join('_');
+
+    // Call the mergePDFs function with the uploaded files and the concatenated file names
+    const mergedFilePath = await mergePDFs(req.files, allFileNames);
 
     // Respond with a success message or the merged PDF file path
     res.send({
@@ -416,7 +420,6 @@ app.post('/merge-pdfs', upload.array('files', 2), async (req, res) => {
     res.status(500).send({ message: 'Error merging PDF files.' });
   }
 });
-
 
 const CompressedFileSchema = new mongoose.Schema({
   uncompressedFilename: {
@@ -480,8 +483,72 @@ app.post('/compress-pdf', upload.single('file'), async (req, res) => {
   });
 });
 
+app.post('/merge-heic-to-pdf', upload.array('files'), async (req, res) => {
+  try {
+    const heicFiles = req.files.filter(file => path.extname(file.originalname).toLowerCase() === '.heic');
+    if (heicFiles.length < 2) {
+      return res.status(400).send({ message: 'Please upload at least 2 HEIC files.' });
+    }
 
+    const pdfDoc = await PDFLibDocument.create();
 
+    const originalFileNames = []; // Array to store original filenames
+
+    for (const file of heicFiles) {
+      originalFileNames.push(file.originalname); // Store the original filename
+
+      const heicBytes = await fs.readFile(file.path);
+      const jpegBuffer = await heicConvert({
+        buffer: heicBytes,
+        format: 'JPEG',
+        quality: 1
+      });
+
+      const heicImage = await pdfDoc.embedJpg(jpegBuffer);
+      const page = pdfDoc.addPage();
+      page.drawImage(heicImage, {
+        x: 0,
+        y: 0,
+        width: page.getWidth(),
+        height: page.getHeight()
+      });
+    }
+
+    const mergedFileName = `merged_${Date.now()}.pdf`;
+    const mergedFilePath = path.join(__dirname, uploadDestination, mergedFileName);
+    const mergedPdfBytes = await pdfDoc.save();
+    await fs.writeFile(mergedFilePath, mergedPdfBytes);
+
+    // Define a new schema for merged HEIC files
+    const MergedHEICSchema = new mongoose.Schema({
+      mergedFileName: {
+        type: String,
+        required: true
+      },
+      originalFileNames: [String], // Array to store original filenames
+      size: {
+        type: Number,
+        required: true
+      }
+    });
+
+    // Create the model based on the schema
+    const MergedHEICFile = mongoose.model('MergedHEICFile', MergedHEICSchema); 
+
+    // Save information to MongoDB using the new model
+    const mergedFileRecord = new MergedHEICFile({
+      mergedFileName: mergedFileName,
+      originalFileNames: originalFileNames,
+      size: mergedPdfBytes.length
+    });
+    await mergedFileRecord.save();
+
+    res.send({ message: 'HEIC files merged to PDF successfully!', mergedFilePath });
+  } catch (error) {
+    console.error('Error merging HEIC files:', error);
+    res.status(500).send({ message: 'An error occurred while merging HEIC files.' });
+  }
+});
 
 // Fetch text from the Mongo Database by filename
 app.get('/get-text/:fileName', async (req, res) => {
@@ -515,3 +582,4 @@ app.post('/extract-pdf-text', upload.single('file'), async (req, res) => {
 });
 
 app.listen(port, () => console.log(`Server listening on port ${port}`));
+
